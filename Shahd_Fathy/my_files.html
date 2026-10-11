@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Files - Wanderlust</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        .drop-zone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .drop-zone i {
+            font-size: 3rem;
+            color: #3b82f6;
+            margin-bottom: 0.5rem;
+        }
+
+        .file-card {
+            background: white;
+            padding: 1rem 1.2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .file-meta {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .file-meta strong {
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-meta small {
+            color: #64748b;
+            font-size: 0.8rem;
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            border: none;
+            color: white;
+        }
+
+        .btn-view {
+            background: #3b82f6;
+        }
+
+        .btn-view:hover {
+            background: #2563eb;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <div class="logo"><i class="fas fa-plane-departure"></i> Wanderlust</div>
+            <div class="nav__links">
+                <a href="index.html">Home</a>
+                <a href="dashboard.html">Dashboard</a>
+                <button onclick="handleLogout()" class="nav__auth-btn" style="cursor:pointer;">Logout</button>
+            </div>
+        </nav>
+    </header>
+
+    <main style="max-width: 900px; margin: 3rem auto; padding: 0 5%;">
+        <h2 style="color: var(--primary-dark); margin-bottom: 1.5rem;">
+            <i class="fas fa-folder-open"></i> My Files & Documents
+        </h2>
+
+        <!-- Upload form -->
+        <div
+            style="background:white; padding:2rem; border-radius:12px; box-shadow:var(--card-shadow); margin-bottom:2rem;">
+            <h3 style="margin-bottom:1rem;">Upload a New File</h3>
+
+            <div id="dropZone" class="drop-zone">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p style="font-weight:600; margin:0.3rem 0;">Drag & Drop your file here</p>
+                <p style="color:#64748b; font-size:0.9rem; margin:0.3rem 0;">or click to browse</p>
+                <p style="color:#94a3b8; font-size:0.8rem; margin-top:0.8rem;">
+                    Allowed: PDF, DOC, DOCX, PNG, JPG, JPEG, TXT — Max 5 MB
+                </p>
+            </div>
+            <input type="file" id="fileInput" style="display:none;">
+
+            <div id="selectedFile"
+                style="display:none; margin-top:1rem; padding:0.8rem; background:#eff6ff; border-radius:6px;">
+                <i class="fas fa-file"></i>
+                <span id="selectedFileName" style="font-weight:600;"></span>
+                <span id="selectedFileSize" style="color:#64748b; font-size:0.85rem;"></span>
+                <button onclick="clearSelection()"
+                    style="float:right; background:none; border:none; color:#ef4444; cursor:pointer;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <button id="uploadBtn" onclick="uploadFile()" class="btn" style="margin-top:1rem; padding:0.7rem 2rem;"
+                disabled>
+                <i class="fas fa-upload"></i> Upload
+            </button>
+
+            <p id="uploadMsg" style="margin-top:1rem; font-weight:bold;"></p>
+        </div>
+
+        <!-- Files list -->
+        <h3 style="margin-bottom:1rem;">My Uploaded Files</h3>
+        <div id="filesList">
+            <p style="color:#64748b;">Loading...</p>
+        </div>
+    </main>
+
+    <script>
+        const API = 'http://127.0.0.1:5001';
+        let currentFile = null;
+
+        // ==================== File Selection ====================
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                handleFileSelected(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelected(e.target.files[0]);
+            }
+        });
+
+        function handleFileSelected(file) {
+            currentFile = file;
+            document.getElementById('selectedFileName').textContent = file.name;
+            document.getElementById('selectedFileSize').textContent = ` (${formatSize(file.size)})`;
+            document.getElementById('selectedFile').style.display = 'block';
+            document.getElementById('uploadBtn').disabled = false;
+            document.getElementById('uploadMsg').textContent = '';
+        }
+
+        function clearSelection() {
+            currentFile = null;
+            fileInput.value = '';
+            document.getElementById('selectedFile').style.display = 'none';
+            document.getElementById('uploadBtn').disabled = true;
+        }
+
+        // ==================== Upload ====================
+        async function uploadFile() {
+            if (!currentFile) return;
+
+            const msg = document.getElementById('uploadMsg');
+            const btn = document.getElementById('uploadBtn');
+
+            const formData = new FormData();
+            formData.append('file', currentFile);
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+            msg.textContent = '';
+
+            try {
+                const res = await fetch(`${API}/api/files/upload`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    msg.style.color = 'green';
+                    msg.textContent = '✅ File uploaded successfully!';
+                    clearSelection();
+                    loadFiles();
+                } else {
+                    msg.style.color = 'red';
+                    msg.textContent = '❌ ' + (data.error || 'Upload failed.');
+                }
+            } catch (err) {
+                msg.style.color = 'red';
+                msg.textContent = '❌ Server connection error.';
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-upload"></i> Upload';
+        }
+
+        // ==================== List Files ====================
+        async function loadFiles() {
+            const list = document.getElementById('filesList');
+            try {
+                const res = await fetch(`${API}/api/files/my`, { credentials: 'include' });
+                if (!res.ok) {
+                    list.innerHTML = '<p style="color:#ef4444;">Failed to load files.</p>';
+                    return;
+                }
+                const files = await res.json();
+
+                if (files.length === 0) {
+                    list.innerHTML = `
+                        <div style="text-align:center; padding:2rem; color:#64748b; background:white; border-radius:8px;">
+                            <i class="fas fa-folder-open" style="font-size:3rem; color:#cbd5e1; margin-bottom:1rem;"></i>
+                            <p>No files uploaded yet.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                list.innerHTML = files.map(f => `
+                    <div class="file-card">
+                        <div class="file-info">
+                            <div class="file-icon" style="background:${iconColor(f.type)};">
+                                <i class="${iconClass(f.type)}"></i>
+                            </div>
+                            <div class="file-meta">
+                                <strong title="${f.original_name}">${f.original_name}</strong>
+                                <small>${formatSize(f.size)} • ${f.uploaded_at}</small>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:0.5rem;">
+                            <a href="${API}${f.url}" target="_blank" class="btn-sm btn-view">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            <button onclick="deleteFile(${f.id})" class="btn-sm btn-delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                list.innerHTML = '<p style="color:#ef4444;">Failed to load files.</p>';
+            }
+        }
+
+        // ==================== Delete ====================
+        async function deleteFile(id) {
+            if (!confirm('Are you sure you want to delete this file?')) return;
+
+            try {
+                const res = await fetch(`${API}/api/files/${id}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    loadFiles();
+                } else {
+                    alert(data.error || 'Delete failed.');
+                }
+            } catch (err) {
+                alert('Server error.');
+            }
+        }
+
+        // ==================== Helpers ====================
+        function formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        }
+
+        function iconClass(type) {
+            const map = {
+                pdf: 'fas fa-file-pdf',
+                doc: 'fas fa-file-word',
+                docx: 'fas fa-file-word',
+                png: 'fas fa-file-image',
+                jpg: 'fas fa-file-image',
+                jpeg: 'fas fa-file-image',
+                txt: 'fas fa-file-alt'
+            };
+            return map[type] || 'fas fa-file';
+        }
+
+        function iconColor(type) {
+            const map = {
+                pdf: '#ef4444',
+                doc: '#3b82f6',
+                docx: '#3b82f6',
+                png: '#10b981',
+                jpg: '#10b981',
+                jpeg: '#10b981',
+                txt: '#f59e0b'
+            };
+            return map[type] || '#64748b';
+        }
+
+        async function handleLogout() {
+            await fetch(`${API}/api/logout`, { method: 'POST', credentials: 'include' });
+            window.location.href = 'login.html';
+        }
+
+        loadFiles();
+    </script>
+</body>
+
+</html>

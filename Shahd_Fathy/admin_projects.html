@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects - Wanderlust</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            border-left: 4px solid;
+        }
+
+        .stat-card h4 {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 0.3rem;
+            text-transform: uppercase;
+        }
+
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .project-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .project-table th {
+            background: #3b82f6;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .project-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .project-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .status-badge {
+            padding: 0.3rem 0.7rem;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal h3 {
+            margin-bottom: 1.5rem;
+            color: #1e293b;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #475569;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+
+<body style="padding:2rem; background:#f1f5f9;">
+
+    <div style="max-width:1200px; margin:0 auto;">
+
+        <!-- Admin nav -->
+        <div
+            style="margin-bottom:1.5rem; display:flex; gap:1rem; border-bottom:1px solid #e2e8f0; padding-bottom:1rem; background:white; padding:1rem; border-radius:8px;">
+            <a href="admin.html"
+                style="text-decoration:none; color:#3b82f6; font-weight:600; padding:0.4rem 0.8rem; border-radius:6px; background:#eff6ff;">Destinations</a>
+            <a href="admin_services.html"
+                style="text-decoration:none; color:#3b82f6; font-weight:600; padding:0.4rem 0.8rem; border-radius:6px; background:#eff6ff;">Services</a>
+            <a href="admin_requests.html"
+                style="text-decoration:none; color:#3b82f6; font-weight:600; padding:0.4rem 0.8rem; border-radius:6px; background:#eff6ff;">Requests</a>
+            <a href="admin_users.html"
+                style="text-decoration:none; color:#3b82f6; font-weight:600; padding:0.4rem 0.8rem; border-radius:6px; background:#eff6ff;">Users</a>
+            <a href="admin_projects.html"
+                style="text-decoration:none; color:#3b82f6; font-weight:600; padding:0.4rem 0.8rem; border-radius:6px; background:#dbeafe;">Projects</a>
+        </div>
+
+        <h1 style="color:#1e293b; margin-bottom:1.5rem;">
+            <i class="fas fa-project-diagram"></i> Project Management
+        </h1>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card" style="border-color:#3b82f6;">
+                <h4>Total Projects</h4>
+                <div class="number" id="statTotal" style="color:#3b82f6;">0</div>
+            </div>
+            <div class="stat-card" style="border-color:#f59e0b;">
+                <h4>In Progress</h4>
+                <div class="number" id="statInProgress" style="color:#f59e0b;">0</div>
+            </div>
+            <div class="stat-card" style="border-color:#10b981;">
+                <h4>Completed</h4>
+                <div class="number" id="statCompleted" style="color:#10b981;">0</div>
+            </div>
+            <div class="stat-card" style="border-color:#64748b;">
+                <h4>Not Started</h4>
+                <div class="number" id="statNotStarted" style="color:#64748b;">0</div>
+            </div>
+            <div class="stat-card" style="border-color:#ef4444;">
+                <h4>On Hold</h4>
+                <div class="number" id="statOnHold" style="color:#ef4444;">0</div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div style="margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="color:#1e293b;">All Projects</h3>
+            <button id="addProjectBtn" onclick="openAddModal()" class="btn"
+                style="padding:0.6rem 1.2rem; background:#10b981; display:none;">
+                <i class="fas fa-plus"></i> Add Project
+            </button>
+        </div>
+
+        <!-- Projects table -->
+        <table class="project-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Client</th>
+                    <th>Status</th>
+                    <th>Members</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="projectsBody">
+                <tr>
+                    <td colspan="6" style="text-align:center; padding:2rem;">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="projectModal">
+        <div class="modal">
+            <h3 id="modalTitle">Add New Project</h3>
+            <form id="projectForm" onsubmit="saveProject(event)">
+                <input type="hidden" id="projectId">
+
+                <div class="form-group">
+                    <label>Title *</label>
+                    <input type="text" id="projectTitle" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="projectDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Status *</label>
+                    <select id="projectStatus" required>
+                        <option value="not_started">Not Started</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="on_hold">On Hold</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Client</label>
+                    <select id="projectClient">
+                        <option value="">-- No Client --</option>
+                    </select>
+                </div>
+
+                <div style="display:flex; gap:0.5rem; margin-top:1.5rem;">
+                    <button type="submit" class="btn" style="flex:1; background:#3b82f6;">Save</button>
+                    <button type="button" onclick="closeModal()" class="btn"
+                        style="flex:1; background:#64748b;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://127.0.0.1:5001';
+        let currentUserRole = null;
+
+        // ==================== Auth ====================
+        async function checkAccess() {
+            try {
+                const res = await fetch(`${API}/api/check-auth`, { credentials: 'include' });
+                const data = await res.json();
+                if (!data.authenticated) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                if (data.role !== 'admin' && data.role !== 'employee') {
+                    window.location.href = 'dashboard.html';
+                    return;
+                }
+                currentUserRole = data.role;
+                if (data.role === 'admin') {
+                    document.getElementById('addProjectBtn').style.display = 'inline-block';
+                }
+            } catch {
+                window.location.href = 'login.html';
+            }
+        }
+
+        // ==================== Stats ====================
+        async function loadStats() {
+            try {
+                const res = await fetch(`${API}/api/projects/stats`, { credentials: 'include' });
+                const d = await res.json();
+                document.getElementById('statTotal').textContent = d.total;
+                document.getElementById('statInProgress').textContent = d.in_progress;
+                document.getElementById('statCompleted').textContent = d.completed;
+                document.getElementById('statNotStarted').textContent = d.not_started;
+                document.getElementById('statOnHold').textContent = d.on_hold;
+            } catch (err) { console.error(err); }
+        }
+
+        // ==================== Projects ====================
+        async function loadProjects() {
+            try {
+                const res = await fetch(`${API}/api/projects`, { credentials: 'include' });
+                const data = await res.json();
+                const tbody = document.getElementById('projectsBody');
+
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:2rem; color:#64748b;">No projects yet.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.map(p => `
+                    <tr>
+                        <td>#${p.id}</td>
+                        <td><strong>${p.title}</strong></td>
+                        <td>${p.client_name || '—'}</td>
+                        <td><span class="status-badge" style="background:${statusColor(p.status)};">${statusLabel(p.status)}</span></td>
+                        <td>
+                            <span style="background:#e0e7ff; color:#3730a3; padding:0.2rem 0.6rem; border-radius:12px; font-size:0.85rem;">
+                                <i class="fas fa-users"></i> ${p.members_count}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="project_details.html?id=${p.id}" class="btn" style="padding:0.3rem 0.7rem; font-size:0.85rem; text-decoration:none;">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) { console.error(err); }
+        }
+
+        function statusColor(s) {
+            return {
+                'not_started': '#64748b',
+                'in_progress': '#f59e0b',
+                'completed': '#10b981',
+                'on_hold': '#ef4444'
+            }[s] || '#64748b';
+        }
+
+        function statusLabel(s) {
+            return {
+                'not_started': 'Not Started',
+                'in_progress': 'In Progress',
+                'completed': 'Completed',
+                'on_hold': 'On Hold'
+            }[s] || s;
+        }
+
+        // ==================== Modal ====================
+        async function openAddModal() {
+            document.getElementById('projectForm').reset();
+            document.getElementById('projectId').value = '';
+            document.getElementById('modalTitle').textContent = 'Add New Project';
+            await loadClientsDropdown();
+            document.getElementById('projectModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('projectModal').classList.remove('active');
+        }
+
+        async function loadClientsDropdown() {
+            const res = await fetch(`${API}/api/clients`, { credentials: 'include' });
+            const clients = await res.json();
+            const select = document.getElementById('projectClient');
+            select.innerHTML = '<option value="">-- No Client --</option>';
+            clients.forEach(c => {
+                select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+            });
+        }
+
+        async function saveProject(e) {
+            e.preventDefault();
+            const id = document.getElementById('projectId').value;
+            const payload = {
+                title: document.getElementById('projectTitle').value,
+                description: document.getElementById('projectDescription').value,
+                status: document.getElementById('projectStatus').value,
+                client_id: document.getElementById('projectClient').value || null
+            };
+
+            const isUpdate = id !== '';
+            const url = isUpdate ? `${API}/api/projects/${id}` : `${API}/api/projects`;
+            const method = isUpdate ? 'PUT' : 'POST';
+
+            try {
+                const res = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    closeModal();
+                    loadProjects();
+                    loadStats();
+                } else {
+                    alert(data.error || 'Failed.');
+                }
+            } catch (err) { alert('Server error.'); }
+        }
+
+        // ==================== Init ====================
+        (async () => {
+            await checkAccess();
+            loadStats();
+            loadProjects();
+        })();
+    </script>
+</body>
+
+</html>

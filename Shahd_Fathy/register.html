@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Wanderlust</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f9;">
+
+    <div class="card" style="width: 100%; max-width: 400px; padding: 2rem;">
+        <h2 style="margin-bottom: 1.5rem; text-align: center;">Create Account</h2>
+        <form id="registerForm" onsubmit="handleRegister(event)">
+            <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required style="width: 100%; padding: 0.5rem;">
+            </div>
+            <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required style="width: 100%; padding: 0.5rem;">
+            </div>
+            <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required style="width: 100%; padding: 0.5rem;">
+            </div>
+            <button type="submit" class="btn" style="width: 100%; padding: 0.75rem;">Register</button>
+            <p id="responseMsg" style="margin-top: 1rem; text-align: center;"></p>
+        </form>
+        <p style="text-align: center; margin-top: 1rem;">Already have an account? <a href="login.html">Login</a></p>
+    </div>
+
+    <script>
+        async function handleRegister(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const msg = document.getElementById('responseMsg');
+
+            try {
+                const response = await fetch('http://127.0.0.1:5001/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    msg.style.color = 'green';
+                    msg.textContent = 'Registered successfully! Redirecting to login...';
+                    setTimeout(() => window.location.href = 'login.html', 2000);
+                } else {
+                    msg.style.color = 'red';
+                    msg.textContent = data.error || 'Registration failed.';
+                }
+            } catch (err) {
+                msg.style.color = 'red';
+                msg.textContent = 'Server connection error.';
+            }
+        }
+    </script>
+</body>
+
+</html>

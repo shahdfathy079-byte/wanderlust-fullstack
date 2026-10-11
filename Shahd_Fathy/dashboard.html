@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard - Wanderlust</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body style="background-color: var(--bg-main);">
+
+    <header>
+        <nav>
+            <div class="logo"><i class="fas fa-plane-departure"></i> Wanderlust</div>
+            <div class="nav__links">
+                <a href="index.html">Home</a>
+                <button onclick="handleLogout()" class="nav__auth-btn" style="cursor: pointer;">Logout</button>
+                <a href="my_requests.html" class="btn"
+                    style="display:inline-block; margin-bottom:1rem; text-decoration:none;">
+                    <i class="fas fa-clipboard-list"></i> My Service Requests
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <main
+        style="max-width: 600px; margin: 4rem auto; background: white; padding: 2.5rem; border-radius: 12px; box-shadow: var(--card-shadow);">
+        <h2 style="margin-bottom: 1.5rem; color: var(--primary-dark); text-align: center;"><i
+                class="fas fa-user-circle"></i> Customer Dashboard</h2>
+
+        <div id="roleBanner" style="text-align:center; margin-bottom:1.5rem;"></div>
+        <div id="loading" style="text-align: center; color: var(--text-secondary);">Loading your profile data...</div>
+
+        <form id="profileForm" onsubmit="updateProfile(event)" style="display: none;">
+            <div class="form-group" style="margin-bottom: 1.2rem;">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required
+                    style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px;">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label for="email">Email (Cannot be changed)</label>
+                <input type="email" id="email" disabled
+                    style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; background: #f1f5f9; border-radius: 4px; cursor: not-allowed;">
+            </div>
+
+            <button type="submit" class="btn" style="width: 100%; padding: 0.75rem;">Update Profile</button>
+            <p id="responseMsg" style="margin-top: 1rem; text-align: center; font-weight: bold;"></p>
+        </form>
+    </main>
+
+    <script>
+        async function fetchUserProfile() {
+            try {
+                const response = await fetch('http://127.0.0.1:5001/api/user/profile', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const data = await response.json();
+                document.getElementById('username').value = data.username;
+                document.getElementById('email').value = data.email;
+
+                // ✅ عرض الـ role
+                const roleBanner = document.getElementById('roleBanner');
+                const role = data.role || 'customer';
+                const roleColors = { admin: '#ef4444', employee: '#f59e0b', customer: '#10b981' };
+                roleBanner.innerHTML = `
+    <span style="padding:0.5rem 1rem; border-radius:20px; color:white; background:${roleColors[role]}; font-weight:600; display:inline-block;">
+        <i class="fas fa-user-shield"></i> Role: ${role}
+    </span>
+`;
+
+                // ✅ أزرار الروابط حسب الصلاحية
+                let extraLinks = '<a href="my_requests.html" class="btn" style="display:inline-block; margin:0.5rem 0.3rem; text-decoration:none;">My Requests</a>';
+                extraLinks += '<a href="my_files.html" class="btn" style="display:inline-block; margin:0.5rem 0.3rem; text-decoration:none; background:#10b981;">My Files</a>';
+                if (role === 'admin' || role === 'employee') {
+                    extraLinks += '<a href="admin_requests.html" class="btn" style="display:inline-block; margin:0.5rem 0.3rem; text-decoration:none; background:#f59e0b;">Manage Requests</a>';
+                }
+                if (role === 'admin') {
+                    extraLinks += '<a href="admin.html" class="btn" style="display:inline-block; margin:0.5rem 0.3rem; text-decoration:none; background:#ef4444;">Admin Panel</a>';
+                    extraLinks += '<a href="admin_users.html" class="btn" style="display:inline-block; margin:0.5rem 0.3rem; text-decoration:none; background:#ef4444;">Manage Users</a>';
+                    extraLinks += '<a href="admin_projects.html" class="btn" style="display:inline-block; margin:0.5rem 0.3rem; text-decoration:none; background:#8b5cf6;">Projects</a>';
+                }
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('profileForm').style.display = 'block';
+                document.getElementById('profileForm').insertAdjacentHTML('beforeend', `<div style="text-align:center; margin-top:1.5rem;">${extraLinks}</div>`);
+            } catch (err) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        async function updateProfile(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const msg = document.getElementById('responseMsg');
+
+            try {
+                const response = await fetch('http://127.0.0.1:5001/api/user/update', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    msg.style.color = 'green';
+                    msg.textContent = 'Profile updated successfully!';
+                } else {
+                    msg.style.color = 'red';
+                    msg.textContent = data.error || 'Update failed.';
+                }
+            } catch (err) {
+                msg.style.color = 'red';
+                msg.textContent = 'Server connection error.';
+            }
+        }
+
+        // تسجيل الخروج
+        async function handleLogout() {
+            try {
+                await fetch('http://127.0.0.1:5001/api/logout', { method: 'POST', credentials: 'include' });
+                window.location.href = 'login.html';
+            } catch (err) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        fetchUserProfile();
+    </script>
+</body>
+
+</html>

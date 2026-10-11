@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Details - Wanderlust</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        .detail-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-row {
+            display: flex;
+            margin-bottom: 1rem;
+            align-items: flex-start;
+        }
+
+        .detail-row label {
+            width: 140px;
+            font-weight: 600;
+            color: #64748b;
+            flex-shrink: 0;
+        }
+
+        .detail-row .value {
+            flex: 1;
+            color: #1e293b;
+        }
+
+        .status-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .member-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            margin: 0.3rem;
+            font-size: 0.9rem;
+        }
+
+        .member-chip button {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0;
+            margin-left: 0.3rem;
+        }
+    </style>
+</head>
+
+<body style="padding:2rem; background:#f1f5f9;">
+
+    <div style="max-width:900px; margin:0 auto;">
+
+        <div style="margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center;">
+            <a href="admin_projects.html" style="text-decoration:none; color:#3b82f6; font-weight:600;">
+                <i class="fas fa-arrow-left"></i> Back to Projects
+            </a>
+            <div>
+                <button id="editBtn" onclick="toggleEdit()" class="btn"
+                    style="padding:0.5rem 1rem; background:#3b82f6; display:none;">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button id="deleteBtn" onclick="deleteProject()" class="btn"
+                    style="padding:0.5rem 1rem; background:#ef4444; display:none;">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+
+        <div id="loading" style="text-align:center; padding:3rem;">Loading...</div>
+
+        <!-- View Mode -->
+        <div id="viewMode" style="display:none;">
+            <div class="detail-card">
+                <h1 id="viewTitle" style="color:#1e293b; margin-bottom:1rem;"></h1>
+                <div class="detail-row">
+                    <label>Status:</label>
+                    <div class="value"><span id="viewStatus" class="status-badge"></span></div>
+                </div>
+                <div class="detail-row">
+                    <label>Client:</label>
+                    <div class="value" id="viewClient">—</div>
+                </div>
+                <div class="detail-row">
+                    <label>Description:</label>
+                    <div class="value" id="viewDescription">—</div>
+                </div>
+                <div class="detail-row">
+                    <label>Created:</label>
+                    <div class="value" id="viewCreated">—</div>
+                </div>
+                <div class="detail-row">
+                    <label>Updated:</label>
+                    <div class="value" id="viewUpdated">—</div>
+                </div>
+            </div>
+
+            <!-- Team -->
+            <div class="detail-card">
+                <h3 style="margin-bottom:1rem; color:#1e293b;">
+                    <i class="fas fa-users"></i> Team Members
+                </h3>
+                <div id="membersList"></div>
+
+                <!-- Add member form (admin only) -->
+                <div id="addMemberSection"
+                    style="display:none; margin-top:1rem; padding-top:1rem; border-top:1px solid #e2e8f0;">
+                    <label style="font-weight:600; color:#475569;">Add Team Member:</label>
+                    <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+                        <select id="userSelect"
+                            style="flex:1; padding:0.6rem; border:1px solid #cbd5e1; border-radius:6px;"></select>
+                        <button onclick="addMember()" class="btn" style="padding:0.6rem 1.2rem; background:#10b981;">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Mode -->
+        <div id="editMode" style="display:none;">
+            <div class="detail-card">
+                <h3 style="margin-bottom:1.5rem; color:#1e293b;">Edit Project</h3>
+                <form onsubmit="saveEdit(event)">
+                    <div style="margin-bottom:1rem;">
+                        <label style="display:block; font-weight:600; color:#475569; margin-bottom:0.4rem;">Title
+                            *</label>
+                        <input type="text" id="editTitle" required
+                            style="width:100%; padding:0.6rem; border:1px solid #cbd5e1; border-radius:6px;">
+                    </div>
+                    <div style="margin-bottom:1rem;">
+                        <label
+                            style="display:block; font-weight:600; color:#475569; margin-bottom:0.4rem;">Description</label>
+                        <textarea id="editDescription" rows="4"
+                            style="width:100%; padding:0.6rem; border:1px solid #cbd5e1; border-radius:6px;"></textarea>
+                    </div>
+                    <div style="margin-bottom:1rem;">
+                        <label style="display:block; font-weight:600; color:#475569; margin-bottom:0.4rem;">Status
+                            *</label>
+                        <select id="editStatus" required
+                            style="width:100%; padding:0.6rem; border:1px solid #cbd5e1; border-radius:6px;">
+                            <option value="not_started">Not Started</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                            <option value="on_hold">On Hold</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom:1rem;">
+                        <label
+                            style="display:block; font-weight:600; color:#475569; margin-bottom:0.4rem;">Client</label>
+                        <select id="editClient"
+                            style="width:100%; padding:0.6rem; border:1px solid #cbd5e1; border-radius:6px;">
+                            <option value="">-- No Client --</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; gap:0.5rem;">
+                        <button type="submit" class="btn" style="flex:1; background:#10b981;">Save Changes</button>
+                        <button type="button" onclick="toggleEdit()" class="btn"
+                            style="flex:1; background:#64748b;">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const API = 'http://127.0.0.1:5001';
+        const params = new URLSearchParams(window.location.search);
+        const projectId = params.get('id');
+
+        let currentProject = null;
+        let currentUserRole = null;
+        let currentUserId = null;
+
+        if (!projectId) {
+            alert('No project ID provided');
+            window.location.href = 'admin_projects.html';
+        }
+
+        // ==================== Auth ====================
+        async function checkAccess() {
+            try {
+                const res = await fetch(`${API}/api/check-auth`, { credentials: 'include' });
+                const data = await res.json();
+                if (!data.authenticated || (data.role !== 'admin' && data.role !== 'employee')) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                currentUserRole = data.role;
+                // نجيب بيانات المستخدم الحالي
+                const pRes = await fetch(`${API}/api/user/profile`, { credentials: 'include' });
+                const pData = await pRes.json();
+                currentUserId = pData.id || null;
+            } catch {
+                window.location.href = 'login.html';
+            }
+        }
+
+        // ==================== Load Project ====================
+        async function loadProject() {
+            try {
+                const res = await fetch(`${API}/api/projects/${projectId}`, { credentials: 'include' });
+                if (res.status === 403) {
+                    alert('You are not assigned to this project');
+                    window.location.href = 'admin_projects.html';
+                    return;
+                }
+                if (res.status === 404) {
+                    alert('Project not found');
+                    window.location.href = 'admin_projects.html';
+                    return;
+                }
+                currentProject = await res.json();
+                renderView();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function renderView() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('viewMode').style.display = 'block';
+
+            const p = currentProject;
+
+            document.getElementById('viewTitle').textContent = p.title;
+            const statusEl = document.getElementById('viewStatus');
+            statusEl.textContent = statusLabel(p.status);
+            statusEl.style.background = statusColor(p.status);
+
+            document.getElementById('viewClient').textContent = p.client_name || '—';
+            document.getElementById('viewDescription').textContent = p.description || '—';
+            document.getElementById('viewCreated').textContent = p.created_at;
+            document.getElementById('viewUpdated').textContent = p.updated_at;
+
+            // Members
+            const membersList = document.getElementById('membersList');
+            if (p.members.length === 0) {
+                membersList.innerHTML = '<p style="color:#64748b;">No team members assigned yet.</p>';
+            } else {
+                membersList.innerHTML = p.members.map(m => `
+                    <span class="member-chip">
+                        <i class="fas fa-user-circle"></i> ${m.username} (${m.role})
+                        ${currentUserRole === 'admin' ? `<button onclick="removeMember(${m.id})" title="Remove"><i class="fas fa-times"></i></button>` : ''}
+                    </span>
+                `).join('');
+            }
+
+            // Buttons حسب الصلاحية
+            if (currentUserRole === 'admin' || currentUserRole === 'employee') {
+                document.getElementById('editBtn').style.display = 'inline-block';
+            }
+            if (currentUserRole === 'admin') {
+                document.getElementById('deleteBtn').style.display = 'inline-block';
+                document.getElementById('addMemberSection').style.display = 'block';
+                loadUsersDropdown();
+            }
+        }
+
+        // ==================== Edit ====================
+        function toggleEdit() {
+            const view = document.getElementById('viewMode');
+            const edit = document.getElementById('editMode');
+
+            if (edit.style.display === 'none') {
+                // املأ الفورم
+                document.getElementById('editTitle').value = currentProject.title;
+                document.getElementById('editDescription').value = currentProject.description || '';
+                document.getElementById('editStatus').value = currentProject.status;
+                loadClientsDropdown(currentProject.client_id);
+
+                view.style.display = 'none';
+                edit.style.display = 'block';
+            } else {
+                view.style.display = 'block';
+                edit.style.display = 'none';
+            }
+        }
+
+        async function saveEdit(e) {
+            e.preventDefault();
+            const payload = {
+                title: document.getElementById('editTitle').value,
+                description: document.getElementById('editDescription').value,
+                status: document.getElementById('editStatus').value,
+                client_id: document.getElementById('editClient').value || null
+            };
+
+            try {
+                const res = await fetch(`${API}/api/projects/${projectId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    await loadProject();
+                    toggleEdit();
+                } else {
+                    alert(data.error || 'Update failed.');
+                }
+            } catch (err) { alert('Server error.'); }
+        }
+
+        // ==================== Delete ====================
+        async function deleteProject() {
+            if (!confirm('Delete this project permanently? This cannot be undone.')) return;
+
+            try {
+                const res = await fetch(`${API}/api/projects/${projectId}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                if (res.ok) {
+                    alert('Project deleted');
+                    window.location.href = 'admin_projects.html';
+                } else {
+                    const data = await res.json();
+                    alert(data.error || 'Delete failed.');
+                }
+            } catch (err) { alert('Server error.'); }
+        }
+
+        // ==================== Members ====================
+        async function loadUsersDropdown() {
+            const res = await fetch(`${API}/api/users/list`, { credentials: 'include' });
+            const users = await res.json();
+            const select = document.getElementById('userSelect');
+
+            // استبعد الأعضاء الموجودين بالفعل
+            const existingIds = currentProject.members.map(m => m.id);
+            const available = users.filter(u => !existingIds.includes(u.id));
+
+            select.innerHTML = '<option value="">-- Select User --</option>';
+            available.forEach(u => {
+                select.innerHTML += `<option value="${u.id}">${u.username} (${u.role})</option>`;
+            });
+        }
+
+        async function addMember() {
+            const userId = document.getElementById('userSelect').value;
+            if (!userId) { alert('Select a user first'); return; }
+
+            try {
+                const res = await fetch(`${API}/api/projects/${projectId}/members`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ user_id: parseInt(userId) })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    await loadProject();
+                } else {
+                    alert(data.error || 'Failed to add member.');
+                }
+            } catch (err) { alert('Server error.'); }
+        }
+
+        async function removeMember(userId) {
+            if (!confirm('Remove this member from the project?')) return;
+
+            try {
+                const res = await fetch(`${API}/api/projects/${projectId}/members/${userId}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                if (res.ok) {
+                    await loadProject();
+                } else {
+                    const data = await res.json();
+                    alert(data.error || 'Failed.');
+                }
+            } catch (err) { alert('Server error.'); }
+        }
+
+        // ==================== Clients ====================
+        async function loadClientsDropdown(selectedId) {
+            const res = await fetch(`${API}/api/clients`, { credentials: 'include' });
+            const clients = await res.json();
+            const select = document.getElementById('editClient');
+            select.innerHTML = '<option value="">-- No Client --</option>';
+            clients.forEach(c => {
+                const selected = (c.id === selectedId) ? 'selected' : '';
+                select.innerHTML += `<option value="${c.id}" ${selected}>${c.name}</option>`;
+            });
+        }
+
+        // ==================== Helpers ====================
+        function statusColor(s) {
+            return {
+                'not_started': '#64748b',
+                'in_progress': '#f59e0b',
+                'completed': '#10b981',
+                'on_hold': '#ef4444'
+            }[s] || '#64748b';
+        }
+
+        function statusLabel(s) {
+            return {
+                'not_started': 'Not Started',
+                'in_progress': 'In Progress',
+                'completed': 'Completed',
+                'on_hold': 'On Hold'
+            }[s] || s;
+        }
+
+        // ==================== Init ====================
+        (async () => {
+            await checkAccess();
+            await loadProject();
+        })();
+    </script>
+</body>
+
+</html>

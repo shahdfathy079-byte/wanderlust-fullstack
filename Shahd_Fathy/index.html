@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wanderlust - Travel & Tourism Agency</title>
+
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Poppins:wght@500;600&display=swap" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <header>
+        <nav>
+            <div class="logo"><i class="fas fa-plane-departure"></i> Wanderlust</div>
+            <div class="nav__links">
+                <a href="#home">Home</a>
+                <a href="#destinations">Destinations</a>
+                <a href="#about">About Us</a>
+                <a href="#contact">Contact</a>
+                <a href="#services">Services</a>
+                <a href="my_requests.html">My Requests</a>
+                <div class="user-menu-container">
+                    <button class="user-icon-btn" title="Account">
+                        <i class="fas fa-user"></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="login.html"><i class="fas fa-sign-in-alt" style="margin-left: 8px;"></i> Login</a>
+                        <a href="register.html"><i class="fas fa-user-plus" style="margin-left: 8px;"></i> Register</a>
+                    </div>
+                </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero__content">
+            <h1>Explore The World With Us</h1>
+            <p>Discover breathtaking destinations, unforgettable experiences, and seamless travel planning.</p>
+            <a href="#destinations" class="btn">Book Your Trip</a>
+        </div>
+    </section>
+
+
+
+    <main>
+
+        <section id="about" style="margin-bottom: 4rem; text-align: center;">
+            <h2 class="section-title">Who We Are</h2>
+            <p style="max-width: 800px; margin: 0 auto; color: var(--text-secondary);">
+                Wanderlust is your premier travel partner. We specialize in curating custom vacation packages, luxury
+                tours, and adventure getaways designed to turn your travel dreams into reality with complete peace of
+                mind.
+            </p>
+        </section>
+
+
+        <section id="destinations">
+            <h2 class="section-title">Popular Destinations</h2>
+
+            <!-- ✅ Search & Filter Bar -->
+            <div class="search-filter-bar"
+                style="max-width:1100px; margin:0 auto 2rem; background:white; padding:1.5rem; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.06);">
+                <div style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap:1rem; align-items:end;">
+
+                    <div>
+                        <label for="searchKeyword"
+                            style="display:block; font-size:0.85rem; font-weight:600; color:#475569; margin-bottom:0.4rem;">
+                            <i class="fas fa-search"></i> Search
+                        </label>
+                        <input type="text" id="searchKeyword" placeholder="Search by title or description..."
+                            style="width:100%; padding:0.6rem; border:1px solid #cbd5e1; border-radius:6px;">
+                    </div>
+
+                    <div>
+                        <label for="searchLocation"
+                            style="display:block; font-size:0.85rem; font-weight:600; color:#475569; margin-bottom:0.4rem;">
+                            <i class="fas fa-map-marker-alt"></i> Location
+                        </label>
+                        <input type="text" id="searchLocation" placeholder="e.g. Paris, Dubai"
+                            style="width:100%; padding:0.6rem; border:1px solid #cbd5e1; border-radius:6px;">
+                    </div>
+
+                    <div>
+                        <label for="searchSort"
+                            style="display:block; font-size:0.85rem; font-weight:600; color:#475569; margin-bottom:0.4rem;">
+                            <i class="fas fa-sort"></i> Sort by
+                        </label>
+                        <select id="searchSort"
+                            style="width:100%; padding:0.6rem; border:1px solid #cbd5e1; border-radius:6px;">
+                            <option value="newest">Newest</option>
+                            <option value="title_asc">Title (A → Z)</option>
+                            <option value="title_desc">Title (Z → A)</option>
+                        </select>
+                    </div>
+
+                    <button onclick="applySearch()" class="btn" style="padding:0.65rem 1.5rem; border-radius:6px;">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+
+                <!-- Active filters / reset -->
+                <div id="activeFilters" style="margin-top:1rem; display:none; align-items:center; gap:0.5rem;">
+                    <span style="font-size:0.85rem; color:#64748b;">Active filters:</span>
+                    <span id="filterInfo" style="font-size:0.85rem; color:#3b82f6; font-weight:600;"></span>
+                    <button onclick="resetSearch()"
+                        style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85rem; text-decoration:underline;">
+                        Clear all
+                    </button>
+                </div>
+
+                <!-- Results count -->
+                <p id="resultsCount" style="margin-top:0.8rem; font-size:0.9rem; color:#64748b;"></p>
+            </div>
+
+            <div class="destinations-grid" id="mainDestinationsGrid">
+            </div>
+        </section>
+
+
+
+        <!-- Contact Section -->
+        <section id="contact">
+            <h2 class="section-title">Contact Us</h2>
+            <div class="contact-container">
+                <form id="contactForm" onsubmit="handleFormSubmit(event)">
+
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="subject">Subject</label>
+                        <input type="text" id="subject" name="subject" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" name="message" rows="4" required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn submit-btn">Send Message</button>
+
+                    <p id="formResponse"></p>
+                </form>
+            </div>
+        </section>
+
+        <section id="services" style="padding: 4rem 0;">
+            <h2 class="section-title">Our Services</h2>
+            <div class="destinations-grid" id="mainServicesGrid">
+            </div>
+        </section>
+    </main>
+
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Wanderlust Travel Agency. All rights reserved.</p>
+    </footer>
+
+    <script>
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const subject = document.getElementById('subject').value;
+            const message = document.getElementById('message').value;
+            const responseMessage = document.getElementById('formResponse');
+
+            try {
+                const response = await fetch('http://127.0.0.1:5001/api/contact', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, email, subject, message })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    responseMessage.style.color = 'green';
+                    responseMessage.textContent = 'Message sent successfully to database!';
+                    document.getElementById('contactForm').reset();
+                } else {
+                    responseMessage.style.color = 'red';
+                    responseMessage.textContent = data.error || 'Submission failed.';
+                }
+            } catch (error) {
+                responseMessage.style.color = 'red';
+                responseMessage.textContent = 'Could not connect to the server.';
+            }
+        }
+        // ==================== Task 8: Search & Filtering ====================
+
+        async function loadMainDestinations(filters = {}) {
+            const grid = document.getElementById('mainDestinationsGrid');
+            grid.innerHTML = '<p style="text-align:center; width:100%; color:#64748b;">Loading...</p>';
+
+            try {
+                // ابنِ الـ query string
+                const params = new URLSearchParams();
+                if (filters.q) params.append('q', filters.q);
+                if (filters.location) params.append('location', filters.location);
+                if (filters.sort) params.append('sort', filters.sort);
+
+                const url = `http://127.0.0.1:5001/api/destinations/search?${params.toString()}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                // عرض عدد النتائج
+                const countEl = document.getElementById('resultsCount');
+                countEl.textContent = `Found ${data.count} destination${data.count !== 1 ? 's' : ''}`;
+
+                // عرض الفلاتر النشطة
+                const activeDiv = document.getElementById('activeFilters');
+                const filterInfo = document.getElementById('filterInfo');
+                const activeList = [];
+                if (data.filters.keyword) activeList.push(`keyword: "${data.filters.keyword}"`);
+                if (data.filters.location) activeList.push(`location: "${data.filters.location}"`);
+                if (data.filters.sort && data.filters.sort !== 'newest') activeList.push(`sort: ${data.filters.sort}`);
+
+                if (activeList.length > 0) {
+                    activeDiv.style.display = 'flex';
+                    filterInfo.textContent = activeList.join(' | ');
+                } else {
+                    activeDiv.style.display = 'none';
+                }
+
+                // لو مفيش نتائج
+                if (data.results.length === 0) {
+                    grid.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align:center; padding:3rem; color:#64748b;">
+                    <i class="fas fa-search" style="font-size:3rem; color:#cbd5e1; margin-bottom:1rem;"></i>
+                    <p style="font-size:1.1rem;">No destinations match your search.</p>
+                    <button onclick="resetSearch()" class="btn" style="margin-top:1rem;">Clear Filters</button>
+                </div>
+            `;
+                    return;
+                }
+
+                // اعرض النتائج
+                grid.innerHTML = data.results.map(item => `
+            <div class="card">
+                <img src="${item.image_url}" alt="${item.title}">
+                <div class="card-body">
+                    <h3>${item.title}</h3>
+                    <p>${item.description}</p>
+                    <a href="#" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Explore</a>
+                </div>
+            </div>
+        `).join('');
+
+            } catch (error) {
+                console.error('Search failed:', error);
+                grid.innerHTML = '<p style="text-align:center; width:100%; color:#ef4444;">Failed to load destinations.</p>';
+            }
+        }
+
+        function applySearch() {
+            const filters = {
+                q: document.getElementById('searchKeyword').value.trim(),
+                location: document.getElementById('searchLocation').value.trim(),
+                sort: document.getElementById('searchSort').value
+            };
+            loadMainDestinations(filters);
+        }
+
+        function resetSearch() {
+            document.getElementById('searchKeyword').value = '';
+            document.getElementById('searchLocation').value = '';
+            document.getElementById('searchSort').value = 'newest';
+            loadMainDestinations();
+        }
+
+        // Enter key في الـ inputs يشغّل البحث
+        document.addEventListener('DOMContentLoaded', () => {
+            ['searchKeyword', 'searchLocation'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('keypress', e => {
+                    if (e.key === 'Enter') applySearch();
+                });
+            });
+        });
+
+        async function loadMainServices() {
+            try {
+                const response = await fetch('http://127.0.0.1:5001/api/services');
+                const data = await response.json();
+                const grid = document.getElementById('mainServicesGrid');
+                if (grid) {
+                    grid.innerHTML = '';
+
+                    data.forEach(item => {
+                        grid.innerHTML += `
+                    <div class="card">
+                        <div class="card-body" style="text-align: center; padding: 2rem;">
+                            <i class="${item.icon}" style="font-size: 2.5rem; color: var(--primary, #3b82f6); margin-bottom: 1rem;"></i>
+                            <h3>${item.title}</h3>
+                            <p>${item.description}</p>
+                        </div>
+                    </div>
+                `;
+                    });
+                }
+            } catch (error) {
+                console.error('Could not fetch services:', error);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadMainDestinations();
+            loadMainServices();
+        });
+    </script>
+
+
+</body>
+
+</html>

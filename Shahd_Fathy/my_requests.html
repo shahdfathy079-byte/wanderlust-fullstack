@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Requests - Wanderlust</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+    <header>
+        <nav>
+            <div class="logo"><i class="fas fa-plane-departure"></i> Wanderlust</div>
+            <div class="nav__links">
+                <a href="index.html">Home</a>
+                <a href="dashboard.html">Dashboard</a>
+                <button onclick="handleLogout()" class="nav__auth-btn" style="cursor:pointer;">Logout</button>
+            </div>
+        </nav>
+    </header>
+
+    <main style="max-width: 900px; margin: 3rem auto; padding: 0 5%;">
+        <h2 style="color: var(--primary-dark); margin-bottom: 1.5rem;">
+            <i class="fas fa-clipboard-list"></i> My Service Requests
+        </h2>
+
+        <!-- Submit form -->
+        <div
+            style="background:white; padding:2rem; border-radius:12px; box-shadow:var(--card-shadow); margin-bottom:2rem;">
+            <h3 style="margin-bottom:1rem;">Submit a New Request</h3>
+            <form id="requestForm" onsubmit="submitRequest(event)">
+                <div class="form-group" style="margin-bottom:1rem;">
+                    <label for="service_type">Service Type</label>
+                    <select id="service_type" required
+                        style="width:100%; padding:0.75rem; border:1px solid #ccc; border-radius:4px;">
+                        <option value="">-- Select --</option>
+                        <option value="Flight Booking">Flight Booking</option>
+                        <option value="Hotel Accommodation">Hotel Accommodation</option>
+                        <option value="Guided Tours">Guided Tours</option>
+                        <option value="Custom Package">Custom Package</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:1rem;">
+                    <label for="details">Details</label>
+                    <textarea id="details" rows="4" required
+                        style="width:100%; padding:0.75rem; border:1px solid #ccc; border-radius:4px;"></textarea>
+                </div>
+                <button type="submit" class="btn" style="padding:0.75rem 1.5rem;">Submit Request</button>
+                <p id="formMsg" style="margin-top:1rem; font-weight:bold;"></p>
+            </form>
+        </div>
+
+        <!-- My requests list -->
+        <h3 style="margin-bottom:1rem;">My Requests History</h3>
+        <div id="requestsList">
+            <p>Loading...</p>
+        </div>
+    </main>
+
+    <script>
+        const API = 'http://127.0.0.1:5001';
+
+        async function loadMyRequests() {
+            try {
+                const res = await fetch(`${API}/api/requests/my`, { credentials: 'include' });
+                if (!res.ok) { window.location.href = 'login.html'; return; }
+                const data = await res.json();
+                const list = document.getElementById('requestsList');
+
+                if (data.length === 0) {
+                    list.innerHTML = '<p style="color:#64748b;">No requests yet.</p>';
+                    return;
+                }
+
+                list.innerHTML = data.map(r => `
+                    <div style="background:white; padding:1.2rem; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.05); margin-bottom:1rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <strong>${r.service_type}</strong>
+                            <span style="padding:0.3rem 0.8rem; border-radius:20px; font-size:0.85rem; color:white; background:${statusColor(r.status)};">
+                                ${r.status}
+                            </span>
+                        </div>
+                        <p style="margin:0.5rem 0; color:#64748b;">${r.details}</p>
+                        <small style="color:#94a3b8;">Created: ${r.created_at} | Updated: ${r.updated_at}</small>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function statusColor(status) {
+            return {
+                'pending': '#f59e0b',
+                'in_progress': '#3b82f6',
+                'completed': '#10b981',
+                'rejected': '#ef4444'
+            }[status] || '#64748b';
+        }
+
+        async function submitRequest(e) {
+            e.preventDefault();
+            const service_type = document.getElementById('service_type').value;
+            const details = document.getElementById('details').value;
+            const msg = document.getElementById('formMsg');
+
+            try {
+                const res = await fetch(`${API}/api/requests`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ service_type, details })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    msg.style.color = 'green';
+                    msg.textContent = 'Request submitted!';
+                    document.getElementById('requestForm').reset();
+                    loadMyRequests();
+                } else {
+                    msg.style.color = 'red';
+                    msg.textContent = data.error || 'Failed.';
+                }
+            } catch (err) {
+                msg.style.color = 'red';
+                msg.textContent = 'Server error.';
+            }
+        }
+
+        async function handleLogout() {
+            await fetch(`${API}/api/logout`, { method: 'POST', credentials: 'include' });
+            window.location.href = 'login.html';
+        }
+
+        loadMyRequests();
+    </script>
+</body>
+
+</html>
